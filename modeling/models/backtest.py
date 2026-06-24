@@ -23,7 +23,7 @@ held-out Brier for each, so you can read off the optimum instead of guessing.
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from dixon_coles import CountRatingModel, outcome_probs, total_over, btts
+from modeling.models.predict import CountRatingModel, outcome_probs, total_over, btts
 
 
 # ---------------------------------------------------------------------------

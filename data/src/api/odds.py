@@ -73,3 +73,5 @@ def odds_api(API_KEY):
     for game in parsed['2026-06-21']:
         print(game)
 
+        
+

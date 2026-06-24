@@ -1,5 +1,5 @@
 """
-backtest_xg.py
+backtest2.py
 ==============
 Head-to-head: does training the rate model on xG predict ACTUAL goal markets
 better than training on raw goals? Both models are scored against real goals
@@ -23,7 +23,7 @@ Caveats handled here:
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from dixon_coles import CountRatingModel, outcome_probs, total_over, btts
+from modeling.models.predict import CountRatingModel, outcome_probs, total_over, btts
 from backtest import base_rates
  
  

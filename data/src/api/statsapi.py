@@ -1,5 +1,9 @@
 import requests
 import time
+from datetime import datetime, timedelta, date, timezone
+from zoneinfo import ZoneInfo
+import pandas as pd
+
 
 class Statsapi:
     def __init__(self, api_key):
@@ -22,8 +26,35 @@ class Statsapi:
                         'comp_4682':'World Championship Qual. CONMEBOL',
                         'comp_7363':'World Championship Qual. OFC',
                         'comp_2954':'World Championship Qual. UEFA'}
+        
+        self.target = [ 'match_id', 'comp_id', 'season_id', 'date', 'home_name', 'home_id',
+                        'away_name', 'away_id', 'home_score', 'away_score', 'home_xg_ft', 'away_xg_ft',
+                        'home_sot_ft', 'away_sot_ft', 'home_sot_1h', 'away_sot_1h', 'home_sot_2h', 'away_sot_2h',
+                        'home_shots_ft', 'away_shots_ft', 'home_shots_1h', 'away_shots_1h', 'home_shots_2h', 'away_shots_2h',
+                        'home_corners_ft', 'away_corners_ft', 'home_corners_1h', 'away_corners_1h', 'home_corners_2h', 'away_corners_2h',
+                        'home_fouls_ft', 'away_fouls_ft', 'home_offsides_ft', 'away_offsides_ft',
+                        'home_offsides_1h', 'away_offsides_1h', 'home_offsides_2h', 'away_offsides_2h',
+                        'home_yellows_ft', 'away_yellows_ft', 'home_yellows_1h', 'away_yellows_1h', 'home_yellows_2h', 'away_yellows_2h',
+                        'home_poss_ft', 'away_poss_ft', 'home_poss_1h', 'away_poss_1h', 'home_poss_2h', 'away_poss_2h',
+                        'home_reds_ft', 'away_reds_ft', 'home_reds_1h', 'away_reds_1h', 'home_reds_2h', 'away_reds_2h',
+                        'ref_id', 'ref_name', 'home_score_1h', 'away_score_1h',]
     
         self.headers = {"Authorization": api_key}
+
+    def get_match_wc(self, start_date='2026-06-01', end_date='2026-09-01', comp='comp_6107'):
+        matches = []
+
+        params = {"per_page": 100, "competition_id": comp, "date_from": start_date, "date_to": end_date}
+        try:
+            response = requests.get(f"https://api.thestatsapi.com/api/football/matches", headers=self.headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+        except Exception as e:
+            print(f"{self.competions[comp]}: {e}")
+            return
+        matches.extend(data.get("data", []))
+        return matches
+
     
     def get_matches(self):
         matches = []
@@ -152,4 +183,41 @@ class Statsapi:
             time.sleep(5.1)
 
         return rows
+    
+    def get_games_today(self):
+        matches = self.get_match_wc()
+        
+
+        eastern = ZoneInfo("America/New_York")
+        today = datetime.now(eastern).date()
+
+        start = datetime(today.year, today.month, today.day, 5, tzinfo=eastern)
+        end = start + timedelta(days=1)
+        start_utc = start.astimezone(timezone.utc)
+        end_utc   = end.astimezone(timezone.utc) 
+        
+        matches = [match for match in matches if start_utc <= datetime.fromisoformat(match['utc_date']) <= end_utc]
+
+        return matches
+
+    def update_last_day_results(self, date=None):
+        matches = self.get_match_wc()
+        
+
+        eastern = ZoneInfo("America/New_York")
+        today = datetime.now(eastern).date()
+
+        start = datetime(today.year, today.month, today.day, 5, tzinfo=eastern) - timedelta(days=1)
+        end = start + timedelta(days=1)
+        start_utc = start.astimezone(timezone.utc)
+        end_utc   = end.astimezone(timezone.utc) 
+        
+        matches = [match for match in matches if start_utc <= datetime.fromisoformat(match['utc_date']) <= end_utc]
+
+        stats = pd.DataFrame(self.get_match_stats(matches))
+        details = pd.DataFrame(self.get_match_deatails(matches))
+
+        combined = pd.merge(stats, details, on="match_id", how="left")
+        return combined[self.target]
+        
 

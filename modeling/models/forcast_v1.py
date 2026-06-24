@@ -1,5 +1,5 @@
 """
-soccer_forecast.py
+forcast_v1.py
 ==================
 A unified, count-based forecasting engine for soccer match markets, built for
 calibrated-probability competitions (e.g. weighted-Brier-scored contests).
