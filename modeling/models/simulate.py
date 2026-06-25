@@ -25,11 +25,11 @@ Integration:
  
 from __future__ import annotations
 import numpy as np
-from predict import COUNT_STATS, _seg_rates
+from modeling.models.predict import COUNT_STATS, _seg_rates
 
  
 try:
-    from referee import ref_factor
+    from modeling.models.referee import ref_factor
 except Exception:
     def ref_factor(*a, **k):   # graceful fallback if referee.py absent
         return 1.0

@@ -26,7 +26,7 @@ DATA REALITY (from the StatsAPI parser):
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from forcast_v1 import (
+from models.forcast_v1 import (
     CountRatingModel, prob_over, prob_at_least_one, btts,
     two_team_grid, total_over, prob_home_more, outcome_probs,
 )

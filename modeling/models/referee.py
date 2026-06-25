@@ -119,7 +119,7 @@ def adjust_cards_fouls(pred, table, ref_id):
     predict_fixture() output by the referee factor. Modifies a COPY and returns it.
     Re-reads the over-lines from the adjusted rate so probabilities stay consistent.
     """
-    from soccer_forecast import total_over, prob_home_more
+    from modeling.models.forcast_v1 import total_over, prob_home_more
     import copy
     out = copy.deepcopy(pred)
  

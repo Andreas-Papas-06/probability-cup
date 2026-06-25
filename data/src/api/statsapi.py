@@ -186,7 +186,6 @@ class Statsapi:
     
     def get_games_today(self):
         matches = self.get_match_wc()
-        
 
         eastern = ZoneInfo("America/New_York")
         today = datetime.now(eastern).date()
@@ -197,12 +196,16 @@ class Statsapi:
         end_utc   = end.astimezone(timezone.utc) 
         
         matches = [match for match in matches if start_utc <= datetime.fromisoformat(match['utc_date']) <= end_utc]
+        details = self.get_match_deatails(matches)
+        for m, d in zip(matches, details):
+            m['ref_id'] = d['ref_id']
 
         return matches
 
     def update_last_day_results(self, date=None):
         matches = self.get_match_wc()
-        
+        dt = pd.to_datetime(date, format="%Y%m%d") - timedelta(days=1)
+        yesterday = dt.strftime("%Y%m%d") 
 
         eastern = ZoneInfo("America/New_York")
         today = datetime.now(eastern).date()
@@ -218,6 +221,10 @@ class Statsapi:
         details = pd.DataFrame(self.get_match_deatails(matches))
 
         combined = pd.merge(stats, details, on="match_id", how="left")
-        return combined[self.target]
+        df = combined[self.target]
+        df_old = pd.read_csv(f'data/data_logs/data_sets_clean/dixon_coles_{yesterday}_inputs.csv', )
+        df_new = pd.concat([df_old, df], ignore_index=True)
+        df_new[self.target].to_csv(f'data/data_logs/data_sets_clean/dixon_coles_{date}_inputs.csv')
+        return df
         
 
