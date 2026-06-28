@@ -61,6 +61,14 @@ DEFAULT_FH_SHARE = {
     "offsides": 0.47, "sot": 0.46, "cards": 0.43,
 }
 
+COMPETITION_IMPORTANCE = {
+    "comp_6107": 2.0,    # FIFA World Cup     
+    "comp_2949": 1.8,    # EURO
+    "comp_5749": 1.8,    # Copa America
+    "comp_1554": 1.8,    # AFCON
+}
+DEFAULT_IMPORTANCE = 1.0
+
 # Red cards skew heavily to the second half (fatigue, game state).
 RED_FH_SHARE = 0.30
 
@@ -77,6 +85,10 @@ def prepare_df(df, red_weight=1):
 
     # dates -> datetime, tz-naive (fit_all_models casts to datetime64[D])
     df["date"] = pd.to_datetime(df["date"], utc=True, errors="coerce").dt.tz_localize(None)
+    if "comp_id" in df.columns:
+        df["importance"] = df["comp_id"].map(COMPETITION_IMPORTANCE).fillna(DEFAULT_IMPORTANCE)
+    else:
+        df["importance"] = DEFAULT_IMPORTANCE
 
     # goals: FT = regulation score (IGNORE final_score; it includes shootouts).
     df["home_goals_ft"] = pd.to_numeric(df["home_score"], errors="coerce")
@@ -141,7 +153,8 @@ def fit_all_models(df, min_rows=300):
             m.fit(sub["home_id"].values, sub["away_id"].values,
                   sub[hcol].values, sub[acol].values,
                   dates=sub["date"].values.astype("datetime64[D]"),
-                  neutral=sub["neutral"].values)
+                  neutral=sub["neutral"].values,
+                  sample_weight=sub["importance"].values)
             models[(stat, seg)] = m
     return models, shares
 

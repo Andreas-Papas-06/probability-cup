@@ -107,7 +107,7 @@ class CountRatingModel:
         return -(ll.sum()) + pen
 
     # -- fit ----------------------------------------------------------------
-    def fit(self, home, away, home_count, away_count, dates=None, neutral=None):
+    def fit(self, home, away, home_count, away_count, dates=None, neutral=None, sample_weight=None):
         """
         home, away          : arrays of team names
         home_count, away_count : observed counts of THIS stat in THIS segment
@@ -131,6 +131,9 @@ class CountRatingModel:
             w = 0.5 ** (age / self.half_life_days)
         else:
             w = np.ones(m)
+
+        if sample_weight is not None:
+            w = w * np.asarray(sample_weight, float)
 
         theta0 = np.concatenate([[np.log(max(yh.mean(), 0.1)), 0.1],
                                  np.zeros(n), np.zeros(n),

@@ -202,29 +202,37 @@ class Statsapi:
 
         return matches
 
-    def update_last_day_results(self, date=None):
+    def update_last_day_results(self, date=None, games=[]):
         matches = self.get_match_wc()
-        dt = pd.to_datetime(date, format="%Y%m%d") - timedelta(days=1)
-        yesterday = dt.strftime("%Y%m%d") 
+        if games:
+            matches = [match for match in matches if match['id'] in games]
+        else:
+            today = pd.to_datetime(date, format="%Y%m%d")
+            yesterday_dt = pd.to_datetime(date, format="%Y%m%d") - timedelta(days=1)
+            yesterday = yesterday_dt.strftime("%Y%m%d") 
 
-        eastern = ZoneInfo("America/New_York")
-        today = datetime.now(eastern).date()
+            eastern = ZoneInfo("America/New_York")
+            today = pd.to_datetime(date, format="%Y%m%d")
 
-        start = datetime(today.year, today.month, today.day, 5, tzinfo=eastern) - timedelta(days=1)
-        end = start + timedelta(days=1)
-        start_utc = start.astimezone(timezone.utc)
-        end_utc   = end.astimezone(timezone.utc) 
-        
-        matches = [match for match in matches if start_utc <= datetime.fromisoformat(match['utc_date']) <= end_utc]
+            start = datetime(today.year, today.month, today.day, 5, tzinfo=eastern) - timedelta(days=1)
+            end = start + timedelta(days=1)
+            start_utc = start.astimezone(timezone.utc)
+            end_utc   = end.astimezone(timezone.utc) 
+            
+            matches = [match for match in matches if start_utc <= datetime.fromisoformat(match['utc_date']) <= end_utc]
 
         stats = pd.DataFrame(self.get_match_stats(matches))
         details = pd.DataFrame(self.get_match_deatails(matches))
-
         combined = pd.merge(stats, details, on="match_id", how="left")
         df = combined[self.target]
-        df_old = pd.read_csv(f'data/data_logs/data_sets_clean/dixon_coles_{yesterday}_inputs.csv', )
-        df_new = pd.concat([df_old, df], ignore_index=True)
-        df_new[self.target].to_csv(f'data/data_logs/data_sets_clean/dixon_coles_{date}_inputs.csv')
+        if games:
+            df_old = pd.read_csv(f'../data/data_logs/data_sets_clean/dixon_coles_{date}_inputs.csv', )
+            df_new = pd.concat([df_old, df], ignore_index=True)
+            df_new[self.target].to_csv(f'../data/data_logs/data_sets_clean/dixon_coles_{date}_inputs.csv', index = False)
+        else:
+            df_old = pd.read_csv(f'../data/data_logs/data_sets_clean/dixon_coles_{yesterday}_inputs.csv', )
+            df_new = pd.concat([df_old, df], ignore_index=True)
+            df_new[self.target].to_csv(f'../data/data_logs/data_sets_clean/dixon_coles_{date}_inputs.csv', index = False)
         return df
         
 

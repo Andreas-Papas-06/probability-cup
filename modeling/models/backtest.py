@@ -23,7 +23,7 @@ held-out Brier for each, so you can read off the optimum instead of guessing.
 from __future__ import annotations
 import numpy as np
 import pandas as pd
-from modeling.models.predict import CountRatingModel, outcome_probs, total_over, btts
+from models.predict import CountRatingModel, outcome_probs, total_over, btts
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +42,8 @@ def fit_goals(df, half_life, min_rows=300):
         m.fit(sub["home_id"].values, sub["away_id"].values,
               sub[hcol].values, sub[acol].values,
               dates=sub["date"].values.astype("datetime64[D]"),
-              neutral=sub["neutral"].values)
+              neutral=sub["neutral"].values,
+              sample_weight=sub["importance"].values if "importance" in sub.columns else None)
         models[seg] = m
     return models
 
